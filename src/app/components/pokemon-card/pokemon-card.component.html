@@ -1,0 +1,23 @@
+<div
+  class="card h-100 text-center bg-secondary text-white"
+  style="max-width: 200px; margin: 0 auto"
+>
+  <div class="card-body">
+    <img
+      [src]="imageUrl"
+      alt="{{ name }}"
+      class="card-img-top mb-3"
+      style="width: 100px; height: 100px; object-fit: contain"
+    />
+    <h5 class="card-title text-capitalize">{{ name }}</h5>
+    <p class="card-text text-capitalize">{{ moveName }} ({{ movePP }})</p>
+    <p class="card-text">Level {{ level }}</p>
+    <button
+      class="btn btn-sm"
+      [ngClass]="isInSquad ? 'btn-danger' : 'btn-success'"
+      (click)="onClick()"
+    >
+      {{ isInSquad ? "Remove" : "Add" }}
+    </button>
+  </div>
+</div>

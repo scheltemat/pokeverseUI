@@ -1,91 +1,49 @@
-import { Component } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { Component, OnInit } from "@angular/core";
+import { PokemonService, Pokemon } from "./services/pokemon.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { NavbarComponent } from "./components/navbar/navbar.component";
-import { forkJoin, switchMap, map } from "rxjs";
-
-interface Pokemon {
-  name: string;
-  url: string;
-}
-
-interface PokemonDetails {
-  id: number;
-  base_experience: number;
-  moves: { move: { name: string; url: string } }[];
-  sprites: { front_default: string }; // Add sprites to get the image URL
-}
-
-interface MoveDetails {
-  pp: number;
-}
+import { PokemonCardComponent } from "./components/pokemon-card/pokemon-card.component";
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, PokemonCardComponent],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
 })
-export class AppComponent {
-  pokemonList: {
-    name: string;
-    level: number;
-    moveName: string;
-    movePP: number;
-    imageUrl: string; // Add imageUrl field for the Pokémon's image
-  }[] = [];
+export class AppComponent implements OnInit {
+  pokemonList: Pokemon[] = [];
+  squad: Pokemon[] = [];
 
-  constructor(private http: HttpClient) {
-    this.fetchPokemonList();
+  constructor(private pokemonService: PokemonService) {}
+
+  ngOnInit(): void {
+    this.pokemonService.fetchPokemonList().subscribe({
+      next: (pokemon) => (this.pokemonList = pokemon),
+      error: (err) => console.error("Error loading Pokémon:", err),
+    });
+
+    this.pokemonService.squad$.subscribe((squad) => (this.squad = squad));
   }
 
-  fetchPokemonList() {
-    this.http
-      .get<{ results: Pokemon[] }>(
-        "https://pokeapi.co/api/v2/pokemon?limit=151"
-      )
-      .pipe(
-        switchMap((res) => {
-          const detailRequests = res.results.map((pokemon) =>
-            this.http.get<PokemonDetails>(pokemon.url).pipe(
-              switchMap((details) => {
-                const firstMove = details.moves[0];
-                if (!firstMove) {
-                  return [null]; // Skip if no move
-                }
-                return this.http.get<MoveDetails>(firstMove.move.url).pipe(
-                  map((moveDetails) => ({
-                    name: pokemon.name,
-                    level: details.base_experience,
-                    moveName: firstMove.move.name,
-                    movePP: moveDetails.pp,
-                    imageUrl: details.sprites.front_default, // Capture the image URL
-                  }))
-                );
-              })
-            )
-          );
-          return forkJoin(detailRequests);
-        })
-      )
-      .subscribe(
-        (pokemonData) => {
-          this.pokemonList = pokemonData.filter(
-            (
-              p
-            ): p is {
-              name: string;
-              level: number;
-              moveName: string;
-              movePP: number;
-              imageUrl: string; // Ensure the imageUrl is available
-            } => p !== null
-          );
-          // Filter out any null entries
-        },
-        (error) => console.error("Error loading Pokémon:", error)
-      );
+  addToSquad(pokemon: Pokemon): void {
+    this.pokemonService.addToSquad(pokemon);
+  }
+
+  removeFromSquad(pokemon: Pokemon): void {
+    this.pokemonService.removeFromSquad(pokemon);
+  }
+
+  isInSquad(pokemon: Pokemon): boolean {
+    return this.pokemonService.isInSquad(pokemon);
+  }
+
+  get canBattle(): boolean {
+    return this.pokemonService.canBattle();
+  }
+
+  handleBattle(): void {
+    alert("Battle started!");
   }
 }

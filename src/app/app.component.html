@@ -1,6 +1,33 @@
-<app-navbar></app-navbar>
+<app-navbar
+  [canBattle]="canBattle"
+  (battle)="handleBattle()"
+></app-navbar>
 
 <div class="container my-4">
+
+  <!-- Squad Display -->
+  <div>
+    <h5>My squad ({{ squad.length }})</h5>
+    <div class="row row-cols-2 row-cols-md-4 g-4 justify-content-center mb-4">
+      <app-pokemon-card
+        *ngFor="let member of squad"
+        [name]="member.name"
+        [imageUrl]="member.imageUrl"
+        [level]="member.level"
+        [moveName]="member.moveName"
+        [movePP]="member.movePP"
+        [isInSquad]="true"
+        (remove)="removeFromSquad(member)"
+        style="max-width: 200px; flex: 0 0 auto;"
+      ></app-pokemon-card>
+    </div>
+  </div>
+
+  <!-- Search Input -->
+  <div>
+    <h5>All Pokemon</h5>
+  </div>
+
   <div class="d-flex justify-content-center mb-4">
     <input
       type="text"
@@ -9,16 +36,20 @@
     />
   </div>
 
-  <div class="row row-cols-2 row-cols-md-4 g-4">
-    <div class="col" *ngFor="let p of pokemonList">
-      <div class="card h-100 text-center bg-secondary" style="max-width: 200px; margin: 0 auto;">
-        <div class="card-body">
-          <img [src]="p.imageUrl" alt="{{ p.name }}" class="card-img-top mb-3" style="width: 100px; height: 100px; object-fit: contain;" />
-          <h5 class="card-title text-capitalize">{{ p.name }}</h5>
-          <p class="card-text text-capitalize">{{ p.moveName }} ({{ p.movePP }})</p>
-          <p class="card-text">Level {{ p.level }}</p>
-        </div>
-      </div>
+  <!-- Pokémon Grid -->
+  <div class="row row-cols-2 row-cols-md-4 g-4 justify-content-center">
+    <div class="col" *ngFor="let p of pokemonList" style="max-width: 200px;">
+      <app-pokemon-card
+        [name]="p.name"
+        [imageUrl]="p.imageUrl"
+        [level]="p.level"
+        [moveName]="p.moveName"
+        [movePP]="p.movePP"
+        [isInSquad]="isInSquad(p)"
+        (add)="addToSquad(p)"
+        (remove)="removeFromSquad(p)"
+      ></app-pokemon-card>
     </div>
   </div>
+
 </div>
